@@ -45,7 +45,7 @@ const DashBoard: React.FC = () => {
     address: "0x94373a4919B3240D86eA41593D5eBa789FEF3848",
     abi: erc20Abi,
     functionName: "allowance",
-    args: [address, ynEth.address],
+    args: [address && address, ynEth.address],
     query: {
       enabled: !!address,
       refetchOnMount: false,
