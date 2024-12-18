@@ -1,9 +1,5 @@
 import { useState } from "react";
-import {
-  writeContract,
-  waitForTransactionReceipt,
-  sendTransaction,
-} from "@wagmi/core";
+import { writeContract, waitForTransactionReceipt } from "@wagmi/core";
 import { contract } from "@/blockchain/contracts/contract";
 import { config } from "@/blockchain/configs/wagmi";
 import { erc20Abi } from "viem";
