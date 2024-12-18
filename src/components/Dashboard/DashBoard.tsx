@@ -68,14 +68,14 @@ const DashBoard: React.FC = () => {
     if (activeTab == "deposit") {
       setDepositAmount(e.target.value);
 
-      if (value > (balance?.formatted || 0)) {
+      if (Number(value) > (Number(balance?.formatted) || 0)) {
         setErrorMsg("Insufficient Balance");
       } else {
         setErrorMsg("");
       }
     } else {
       setWithdrawAmount(e.target.value);
-      if (value > (data.userBalance || 0)) {
+      if (Number(value) > (Number(data.userBalance) || 0)) {
         setErrorMsg("Insufficient Balance");
       } else {
         setErrorMsg("");
