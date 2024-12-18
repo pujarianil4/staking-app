@@ -96,8 +96,6 @@ export default function useTokenData() {
     }
   });
 
-  console.log("loading", tokenInfo, isBalanceLoading, isContractsLoading);
-
   return {
     data: tokenInfo,
     refetchUserBalance,

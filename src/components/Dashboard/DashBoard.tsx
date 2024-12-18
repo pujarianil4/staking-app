@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState, ChangeEvent } from "react";
-import { parseUnits } from "viem";
+import { erc20Abi, formatEther, parseUnits } from "viem";
 import useTokenData from "@/hooks/useTokenData";
 import useWriteContract from "@/hooks/useWriteContract";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import useWeb3 from "@/hooks/useWeb3";
 import { shortenAddr } from "@/utils";
 import { contract } from "@/blockchain/contracts/contract";
+import { useReadContract } from "wagmi";
 
 // Reusable InfoCard Component
 interface InfoCardProps {
@@ -30,16 +31,33 @@ const DashBoard: React.FC = () => {
   const { openConnectModal } = useConnectModal();
   const { balance, isConnected, address, chainId } = useWeb3();
   const { write, isLoading: isTransactionLoading } = useWriteContract();
-  const { ynEth } = contract;
   const [activeTab, setActiveTab] = useState<"deposit" | "withdraw">("deposit");
-
+  const { ynEth } = contract;
   const [withdrawAmount, setWithdrawAmount] = useState<number | string>("");
   const [depositAmount, setDepositAmount] = useState<number | string>("");
   const [errorMsg, setErrorMsg] = useState<string>("");
 
+  const {
+    data: wEthAllowance,
+    refetch: refetchAllowance,
+    // @ts-ignore
+  } = useReadContract({
+    address: "0x94373a4919B3240D86eA41593D5eBa789FEF3848",
+    abi: erc20Abi,
+    functionName: "allowance",
+    args: [address, ynEth.address],
+    query: {
+      enabled: !!address,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+    },
+  });
+
   const handleTabChange = (tab: "deposit" | "withdraw") => {
     setActiveTab(tab);
     setErrorMsg("");
+    setDepositAmount("");
+    setWithdrawAmount("");
   };
   // Handle Input Change
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -82,18 +100,18 @@ const DashBoard: React.FC = () => {
 
     try {
       const amountInWei = parseUnits(String(value), Number(balance?.decimals));
-      console.log("value", amountInWei);
-      //1000000000000000
-      await write("deposit", [
-        amountInWei,
-        "0x99Be4A96f1Da3d78D94e6678caA48D764F0262ff",
-      ]);
+
+      if (Number(formatEther(wEthAllowance)) < Number(value)) {
+        await write("approve", [ynEth.address, amountInWei]);
+      }
+      await write("deposit", [amountInWei, address]);
       setDepositAmount("");
       refetchUserBalance();
+      refetchAllowance();
       alert("Transaction Successful");
     } catch (error) {
       console.log("Error", error);
-
+      refetchAllowance();
       setErrorMsg("Transaction Failed. Please try again.");
       setTimeout(() => setErrorMsg(""), 2000);
     }
@@ -115,7 +133,7 @@ const DashBoard: React.FC = () => {
 
     try {
       const amountInWei = parseUnits(String(value), Number(balance?.decimals));
-      await write("withdraw", [amountInWei, address, address]);
+      await write("redeem", [amountInWei, address, address]);
       setWithdrawAmount("");
       refetchUserBalance();
       alert("Transaction Successful");
@@ -181,20 +199,34 @@ const DashBoard: React.FC = () => {
         </div>
 
         <div className='m-10'>
-          {isConnected && data?.userBalance && (
+          {isConnected && (
             <h2>
               <span className='font-bold'>UserBalance:</span>{" "}
-              {`${data?.userBalance} 
- ${data?.tokenSymbol}`}
+              {data?.userBalance ? (
+                <span>{`${data?.userBalance} 
+                ${data?.tokenSymbol}`}</span>
+              ) : isLoading ? (
+                <span>Loading...</span>
+              ) : (
+                <span>N/A</span>
+              )}
             </h2>
           )}
-          {data?.totalSupply && (
-            <h2>
-              <span className='font-bold'>Total Supply:</span>{" "}
-              {`${data?.totalSupply} 
-            ${data?.tokenSymbol}`}
-            </h2>
-          )}
+
+          <h2>
+            <span className='font-bold'>Total Supply:</span>{" "}
+            {data.totalSupply ? (
+              <span>
+                {" "}
+                {`${data?.totalSupply} 
+              ${data?.tokenSymbol}`}
+              </span>
+            ) : isContractsLoading ? (
+              <span>Loading...</span>
+            ) : (
+              <span>N/A</span>
+            )}
+          </h2>
         </div>
 
         {/* Deposit Section */}

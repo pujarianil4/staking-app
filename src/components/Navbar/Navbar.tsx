@@ -15,9 +15,9 @@ const Navbar: React.FC = () => {
   const { openChainModal } = useChainModal();
 
   return (
-    <nav className='flex justify-between p-5'>
+    <nav style={{ height: "70px" }} className='flex justify-between p-5 h-30'>
       <div>
-        <h2 className='font-semibold text-xl'>Stake Eth</h2>
+        <h2 className='font-semibold text-xl'>YieldNest</h2>
       </div>
       <div>
         {isConnected ? (
