@@ -93,7 +93,7 @@ const DashBoard: React.FC = () => {
       return;
     }
 
-    if (value > (balance?.formatted || 0)) {
+    if (Number(value) > (Number(balance?.formatted) || 0)) {
       setErrorMsg("Insufficient Balance");
       return;
     }
@@ -126,7 +126,7 @@ const DashBoard: React.FC = () => {
       return;
     }
 
-    if (value > (data.userBalance || 0)) {
+    if (Number(value) > (Number(data.userBalance) || 0)) {
       setErrorMsg("Insufficient Balance");
       return;
     }
